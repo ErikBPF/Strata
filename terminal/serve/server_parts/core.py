@@ -46,17 +46,29 @@ OPENAI_MAX_STOP = 4                                  # OpenAI's limit on `stop`
 SPLIT_REFUSED_FEATURES = ("logprobs", "logit_bias")
 
 
+#: OpenAI caps `top_logprobs` at 20.  A decision client (pqnld-style lettered readout)
+#: needs one slot per option label, so the cap is configurable: STRATA_MAX_TOP_LOGPROBS
+#: raises it for those clients without changing the default OpenAI shape.
+def max_top_logprobs() -> int:
+    try:
+        value = int(os.environ.get("STRATA_MAX_TOP_LOGPROBS", "20"))
+    except ValueError:
+        return 20
+    return max(0, min(4096, value))
+
+
 def top_logprobs(req: dict):
     """The K for the engine's logprobs=K, or None when the request did not ask.
 
-    OpenAI: "logprobs": true with "top_logprobs" 0..20; the legacy completions form,
-    "logprobs": N, is taken as N."""
+    OpenAI: "logprobs": true with "top_logprobs" 0..20 (STRATA_MAX_TOP_LOGPROBS
+    raises the ceiling); the legacy completions form, "logprobs": N, is taken as N."""
+    cap = max_top_logprobs()
     lp = req.get("logprobs")
     if lp is True:
         k = req.get("top_logprobs")
-        return max(0, min(20, k)) if isinstance(k, int) and not isinstance(k, bool) else 0
+        return max(0, min(cap, k)) if isinstance(k, int) and not isinstance(k, bool) else 0
     if isinstance(lp, int) and not isinstance(lp, bool) and lp >= 0:
-        return min(20, lp)
+        return min(cap, lp)
     return None
 
 

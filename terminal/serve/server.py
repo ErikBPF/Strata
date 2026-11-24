@@ -7866,6 +7866,8 @@ def make_handler(svc: Service):
                     self._anthropic(req)
                 elif path == "/v1/messages/count_tokens":
                     self._count_tokens(req)
+                elif path == "/tokenize":
+                    self._tokenize(req)
                 elif path == "/v1/images/generations":
                     self._images(req)
                 else:
@@ -8504,6 +8506,20 @@ def make_handler(svc: Service):
                                           "reasoning.encrypted_content" in include, validator is not None)
             # the request is also the sampling dict, as on the chat path (temperature, top_p, top_k, seed, ...)
             return ids, thinking, tools, max_new, asm, validator, req, force
+
+        def _tokenize(self, req):
+            """`POST /tokenize`: the model's token ids for a string, without running it.
+
+            llama.cpp clients send {"content": str}; vLLM and SGLang send {"prompt": str} or
+            {"text": str}.  The answer mirrors llama.cpp: ids in "tokens", plus a count.
+            A decision client uses it to prove an option label is one token before scoring."""
+            raw = req.get("content")
+            if raw is None:
+                raw = req.get("prompt", req.get("text"))
+            if not isinstance(raw, str):
+                raise BadBody(400, "tokenize needs a string in content, prompt or text")
+            ids = svc.tokenizer.encode(raw, parse_special=bool(req.get("parse_special", False)))
+            self._json(200, {"model": svc.model, "tokens": ids, "count": len(ids)})
 
         def _count_tokens(self, req):
             """Anthropic's token count, which Claude Code asks for its context figures: the prompt this server would
