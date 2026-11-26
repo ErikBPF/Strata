@@ -46,9 +46,7 @@ OPENAI_MAX_STOP = 4                                  # OpenAI's limit on `stop`
 SPLIT_REFUSED_FEATURES = ("logprobs", "logit_bias")
 
 
-#: OpenAI caps `top_logprobs` at 20.  A decision client (pqnld-style lettered readout)
-#: needs one slot per option label, so the cap is configurable: STRATA_MAX_TOP_LOGPROBS
-#: raises it for those clients without changing the default OpenAI shape.
+#: STRATA_MAX_TOP_LOGPROBS raises OpenAI's 20-slot cap for decision clients; default 20.
 def max_top_logprobs() -> int:
     try:
         value = int(os.environ.get("STRATA_MAX_TOP_LOGPROBS", "20"))

@@ -8508,11 +8508,8 @@ def make_handler(svc: Service):
             return ids, thinking, tools, max_new, asm, validator, req, force
 
         def _tokenize(self, req):
-            """`POST /tokenize`: the model's token ids for a string, without running it.
-
-            llama.cpp clients send {"content": str}; vLLM and SGLang send {"prompt": str} or
-            {"text": str}.  The answer mirrors llama.cpp: ids in "tokens", plus a count.
-            A decision client uses it to prove an option label is one token before scoring."""
+            """`POST /tokenize`: token ids for a string, without running the model. Accepts
+            llama.cpp `content`, vLLM `prompt` or SGLang `text`; mirrors llama.cpp's answer."""
             raw = req.get("content")
             if raw is None:
                 raw = req.get("prompt", req.get("text"))

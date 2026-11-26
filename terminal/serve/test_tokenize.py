@@ -1,9 +1,4 @@
-"""POST /tokenize and the configurable top_logprobs ceiling: python -m unittest serve.test_tokenize.
-
-Both exist for decision clients (a lettered readout): the tokenizer proves an option label
-is ONE token before it is scored, and the ceiling lets such a client see more than the
-OpenAI default of 20 labels at the answer slot.
-"""
+"""POST /tokenize and STRATA_MAX_TOP_LOGPROBS: python -m unittest serve.test_tokenize."""
 from __future__ import annotations
 
 import os
